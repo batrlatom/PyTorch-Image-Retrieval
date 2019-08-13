@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from auto_augment import AutoAugment, Cutout
 
 import os
 from torch.utils.data import Dataset
@@ -12,6 +13,8 @@ from PIL import Image
 def train_data_loader(data_path, img_size, use_augment=False):
     if use_augment:
         data_transforms = transforms.Compose([
+
+            """
             transforms.RandomOrder([
                 transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], .5),
                 transforms.Compose([
@@ -23,6 +26,8 @@ def train_data_loader(data_path, img_size, use_augment=False):
             transforms.RandomApply([transforms.RandomRotation(15)], .5),
             transforms.RandomResizedCrop(img_size),
             transforms.RandomHorizontalFlip(),
+            """
+            AutoAugment(), Cutout(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
@@ -35,6 +40,9 @@ def train_data_loader(data_path, img_size, use_augment=False):
         ])
 
     image_dataset = datasets.ImageFolder(data_path, data_transforms)
+    #print(image_dataset)
+
+
 
     return image_dataset
 
