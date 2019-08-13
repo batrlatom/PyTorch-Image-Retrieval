@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
         """ Load data """
         print('dataset path', dataset_path)
-        train_dataset_path = dataset_path + '/train/train_data'
+        train_dataset_path = dataset_path #+ '/train/train_data'
 
         img_dataset = train_data_loader(data_path=train_dataset_path, img_size=input_size,
                                         use_augment=use_augmentation)
