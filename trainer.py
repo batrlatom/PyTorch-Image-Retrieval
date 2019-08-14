@@ -3,6 +3,8 @@ import os
 import torch
 import numpy as np
 from tensorboardX import SummaryWriter
+global writer
+total_step = 0
 
 def save(model, ckpt_num, dir_name):
     os.makedirs(dir_name, exist_ok=True)
@@ -24,6 +26,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
     Siamese network: Siamese loader, siamese model, contrastive loss
     Online triplet learning: batch loader, embedding model, online triplet loss
     """
+    global writer
     writer = SummaryWriter()
 
     # Save pre-trained model
@@ -36,7 +39,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
         scheduler.step()
 
         # Train stage
-        train_loss, metrics = train_epoch(train_loader, model, loss_fn, optimizer, device, log_interval)
+        train_loss, metrics = train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_interval)
 
         log_dict = {'epoch': epoch + 1,
                     'epoch_total': nb_epoch,
@@ -45,10 +48,10 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
 
         message = 'Epoch: {}/{}. Train set: Average loss: {:.4f}'.format(epoch + 1, nb_epoch, train_loss)
 
-        writer.add_scalar('data/loss', train_loss, epoch+1)
         for metric in metrics:
             log_dict[metric.name()] = metric.value()
             message += '\t{}: {}'.format(metric.name(), metric.value())
+
 
         print(message)
         print(log_dict)
@@ -56,12 +59,14 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
         save(model, epoch + 1, save_model_to)
 
 
-def train_epoch(train_loader, model, loss_fn, optimizer, device, log_interval):
+def train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_interval):
 
     for metric in loss_fn.metrics:
         metric.reset()
 
     model.train()
+    global writer
+    global total_step
     total_loss = 0
 
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -91,11 +96,21 @@ def train_epoch(train_loader, model, loss_fn, optimizer, device, log_interval):
                 batch_idx * len(data[0]), len(train_loader.dataset), 100. * batch_idx / len(train_loader))
             for name, value in losses.items():
                 message += '\t{}: {:.6f}'.format(name, np.mean(value))
+                #print("------")
+                #print(total_step)
+                #print(np.mean(value))
+                #print(value)
+                writer.add_scalar('data/loss', np.mean(value), total_step)
+                total_step += 1
+
+
+
             for metric in loss_fn.metrics:
                 message += '\t{}: {}'.format(metric.name(), metric.value())
 
-            print(message)
 
+
+            print(message)
 
 
     total_loss /= (batch_idx + 1)
