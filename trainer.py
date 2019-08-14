@@ -24,7 +24,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
     Siamese network: Siamese loader, siamese model, contrastive loss
     Online triplet learning: batch loader, embedding model, online triplet loss
     """
-    writer = SummaryWriter('runs/experiment-1')
+    writer = SummaryWriter()
 
     # Save pre-trained model
     save(model, 0, save_model_to)
@@ -45,7 +45,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
 
         message = 'Epoch: {}/{}. Train set: Average loss: {:.4f}'.format(epoch + 1, nb_epoch, train_loss)
 
-        writer.add('loss', train_loss, epoch+1)
+        writer.add_scalar('data/loss', train_loss, epoch+1)
         for metric in metrics:
             log_dict[metric.name()] = metric.value()
             message += '\t{}: {}'.format(metric.name(), metric.value())

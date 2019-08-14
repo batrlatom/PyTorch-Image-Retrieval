@@ -20,7 +20,7 @@ from losses import BlendedLoss, MAIN_LOSS_CHOICES
 
 from trainer import fit
 from inference import retrieve
-
+from tensorboardX import SummaryWriter
 
 def load(file_path):
     model.load_state_dict(torch.load(file_path))
@@ -66,6 +66,9 @@ def get_arguments():
 
 
 if __name__ == '__main__':
+    writer = SummaryWriter()
+    writer.add_scalar('data/test', 1, 1)
+
     config = get_arguments()
 
     dataset_path = config.dataset_path
