@@ -101,6 +101,8 @@ if __name__ == '__main__':
                              attention_flag=attention_flag,
                              cross_entropy_flag=cross_entropy_flag)
 
+    model = load(file_path=config.model_to_test)
+
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
 
@@ -158,7 +160,7 @@ if __name__ == '__main__':
             device=device, log_interval=log_interval, save_model_to=config.model_save_dir)
 
     elif config.mode == 'test':
-        test_dataset_path = dataset_path + '/test/test_data'
+        test_dataset_path = dataset_path #+ '/test/test_data'
         queries, db = test_data_loader(test_dataset_path)
         model = load(file_path=config.model_to_test)
         result_dict = infer(model, queries, db)

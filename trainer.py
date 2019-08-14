@@ -49,8 +49,8 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
 
         print(message)
         print(log_dict)
-        if (epoch + 1) % 5 == 0:
-            save(model, epoch + 1, save_model_to)
+        #if (epoch + 1) % 5 == 0:
+        save(model, epoch + 1, save_model_to)
 
 
 def train_epoch(train_loader, model, loss_fn, optimizer, device, log_interval):
