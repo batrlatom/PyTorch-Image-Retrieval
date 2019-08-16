@@ -66,9 +66,16 @@ def get_arguments():
 
 
 if __name__ == '__main__':
+    """
     writer = SummaryWriter()
-    writer.add_scalar('data/test', 1, 1)
 
+    for n_iter in range(100):
+
+        dummy_s1 = torch.rand(1)
+        # data grouping by `slash`
+        print(dummy_s1[0])
+        writer.add_scalar('data/scalar1', 1, n_iter)
+    """
     config = get_arguments()
 
     dataset_path = config.dataset_path
@@ -93,7 +100,7 @@ if __name__ == '__main__':
     num_samples = config.num_samples
     use_augmentation = config.use_augmentation
 
-    infer_batch_size = 64
+    infer_batch_size = 32
     log_interval = 50
 
     """ Model """
@@ -104,7 +111,8 @@ if __name__ == '__main__':
                              attention_flag=attention_flag,
                              cross_entropy_flag=cross_entropy_flag)
 
-    model = load(file_path=config.model_to_test)
+    if config.model_to_test:
+        model = load(file_path=config.model_to_test)
 
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
@@ -165,5 +173,36 @@ if __name__ == '__main__':
     elif config.mode == 'test':
         test_dataset_path = dataset_path #+ '/test/test_data'
         queries, db = test_data_loader(test_dataset_path)
-        model = load(file_path=config.model_to_test)
+        #model = load(file_path=config.model_to_test)
         result_dict = infer(model, queries, db)
+
+        print(result_dict)
+
+        from sklearn.metrics import recall_score
+        import numpy as np
+
+        print("***")
+        positives = []
+        k = 1
+        for item in result_dict:
+            #print("---")
+            index, query_item = item
+            query = query_item[0]
+            for result in query_item[1][:k]:
+                if query.split('_')[0] == result.split('_')[0]:
+                    positives.append(1)
+                else:
+                    positives.append(0)
+                #print(result)
+            #print("---")
+
+
+
+
+        trues = list(np.ones(len(positives),  dtype = int))
+        score = recall_score(trues, positives, average='micro')
+        print("recall is: ", score)
+        print("***")
+        print(positives)
+        print(trues)
+        print("***")

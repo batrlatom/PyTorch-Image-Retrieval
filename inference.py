@@ -46,7 +46,8 @@ def retrieve(model, queries, db, img_size, infer_batch_size):
     for (i, query) in enumerate(query_paths):
         query = query.split('/')[-1].split('.')[0]
         ranked_list = [reference_paths[k].split('/')[-1].split('.')[0] for k in indices[i]]
-        ranked_list = ranked_list[:1000]
+        #ranked_list = ranked_list[:1000]
+        ranked_list = ranked_list[:10]
 
         retrieval_results[query] = ranked_list
 
