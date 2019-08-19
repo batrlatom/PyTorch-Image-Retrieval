@@ -24,7 +24,7 @@ from tensorboardX import SummaryWriter
 
 def load(file_path):
     model.load_state_dict(torch.load(file_path))
-    print('model loaded!')
+    #print('model loaded!')
     return model
 
 
@@ -43,8 +43,9 @@ def get_arguments():
 
     # Hyperparameters
     args.add_argument('--epochs', type=int, default=20)
+    args.add_argument('--start-epoch', type=int, default=0)
     args.add_argument('--model', type=str,
-                      choices=['densenet161', 'resnet101',  'inceptionv3', 'seresnext'],
+                      choices=['densenet161', 'resnet101',  'inceptionv3', 'seresnext', 'googlenet','mobilenet2', 'mnasnet'],
                       default='densenet161')
     args.add_argument('--input-size', type=int, default=224, help='size of input image')
     args.add_argument('--num-classes', type=int, default=64, help='number of classes for batch sampler')
@@ -90,6 +91,7 @@ if __name__ == '__main__':
 
     # Training parameters
     nb_epoch = config.epochs
+    start_epoch = config.start_epoch
     loss_type = config.loss_type
     cross_entropy_flag = config.cross_entropy
     scheduler_name = config.scheduler
@@ -118,6 +120,8 @@ if __name__ == '__main__':
         model = nn.DataParallel(model)
 
     if config.mode == 'train':
+
+        torch.autograd.set_detect_anomaly(True)
 
         """ Load data """
         print('dataset path', dataset_path)
@@ -167,7 +171,7 @@ if __name__ == '__main__':
         loss_fn = BlendedLoss(loss_type, cross_entropy_flag)
 
         # Train (fine-tune) model
-        fit(online_train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
+        fit(online_train_loader, model, loss_fn, optimizer, scheduler, nb_epoch, start_epoch = start_epoch,
             device=device, log_interval=log_interval, save_model_to=config.model_save_dir)
 
     elif config.mode == 'test':
@@ -178,10 +182,10 @@ if __name__ == '__main__':
 
         print(result_dict)
 
-        from sklearn.metrics import recall_score
+        from sklearn.metrics import recall_score, precision_score
         import numpy as np
 
-        print("***")
+    
         positives = []
         k = 1
         for item in result_dict:
@@ -193,16 +197,10 @@ if __name__ == '__main__':
                     positives.append(1)
                 else:
                     positives.append(0)
-                #print(result)
-            #print("---")
-
-
-
 
         trues = list(np.ones(len(positives),  dtype = int))
         score = recall_score(trues, positives, average='micro')
-        print("recall is: ", score)
-        print("***")
-        print(positives)
-        print(trues)
-        print("***")
+        precision = precision_score(trues, positives, average='micro')
+
+        # output
+        print(config.model_to_test.split("/")[-2], "    ", config.model_to_test.split("/")[-1], "   ", "recall is: ", score) #, "  ", "precision is: " ,  precision)

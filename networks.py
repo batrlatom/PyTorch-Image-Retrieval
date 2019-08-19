@@ -8,8 +8,8 @@ import torch.nn.functional as F
 from torchvision import models
 
 from senet import se_resnext101_32x4d
-
-
+from MobileNetV2 import MobileNetV2
+from MnasNet import MnasNet
 class BaseNetwork(nn.Module):
     """ Load Pretrained Module """
 
@@ -91,6 +91,13 @@ class EmbeddingNetwork(BaseNetwork):
                 self.attention = SelfAttention(2048, 'relu')
             elif self.model_name == 'seresnext':
                 self.attention = SelfAttention(2048, 'relu')
+            elif self.model_name == 'googlenet':
+                self.attention = SelfAttention(1024, 'relu')
+            elif self.model_name == 'mobilenet2':
+                self.attention = SelfAttention(1280, 'relu')
+            elif self.model_name == 'mnasnet':
+                self.attention = SelfAttention(1280, 'relu')
+
 
         if self.cross_entropy_flag:
             self.fc_cross_entropy = nn.Linear(self.model_ft.classifier.in_features, 1000)
@@ -126,13 +133,19 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
     if model_name == "densenet161":
         model_ft = models.densenet161(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
+        print(model_ft)
         num_features = model_ft.classifier.in_features
+        print(num_features)
+        print(embedding_dim)
         model_ft.classifier = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
+
     elif model_name == "resnet101":
         model_ft = models.resnet101(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
         num_features = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
     elif model_name == "inceptionv3":
         model_ft = models.inception_v3(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
@@ -143,6 +156,39 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         set_parameter_requires_grad(model_ft, feature_extracting)
         num_features = model_ft.last_linear.in_features
         model_ft.last_linear = nn.Linear(num_features, embedding_dim)
+    elif model_name == "googlenet":
+        model_ft = models.googlenet(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        print(model_ft)
+        num_features = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_features, embedding_dim)
+
+    elif model_name == "mobilenet2":
+        model_ft = models.MobileNetV2(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+
+        num_features = model_ft.classifier[1].in_features
+        model_ft.classifier[1] = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
+
+    elif model_name == "mnasnet":
+        model_ft = models.mnasnet1_0(pretrained=use_pretrained)
+        #model_ft = MnasNet()
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        print(model_ft)
+        print("---")
+        print(model_ft.classifier[0])
+        print(model_ft.classifier[1])
+
+        num_features = model_ft.classifier[1].in_features
+        print(num_features)
+        print(embedding_dim)
+        #model_ft.classifier[0] = nn.Dropout(p=0.2, inplace=False)
+        model_ft.classifier[1] = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
+
+
+
     else:
         raise ValueError
 
