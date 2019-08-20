@@ -9,7 +9,9 @@ from torchvision import models
 
 from senet import se_resnext101_32x4d
 from MobileNetV2 import MobileNetV2
-from MnasNet import MnasNet
+from MnasNet import mnasnet1_0
+from ADL_GoogleNet import GoogLeNet
+
 class BaseNetwork(nn.Module):
     """ Load Pretrained Module """
 
@@ -97,6 +99,8 @@ class EmbeddingNetwork(BaseNetwork):
                 self.attention = SelfAttention(1280, 'relu')
             elif self.model_name == 'mnasnet':
                 self.attention = SelfAttention(1280, 'relu')
+            elif self.model_name == 'adl_googlenet':
+                self.attention = SelfAttention(512, 'relu')
 
 
         if self.cross_entropy_flag:
@@ -129,14 +133,16 @@ def set_parameter_requires_grad(model, feature_extracting):
             param.requires_grad = False
 
 
+
 def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrained=True):
     if model_name == "densenet161":
         model_ft = models.densenet161(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
-        print(model_ft)
+
+        #print(model_ft)
         num_features = model_ft.classifier.in_features
         print(num_features)
-        print(embedding_dim)
+        #print(embedding_dim)
         model_ft.classifier = nn.Linear(num_features, embedding_dim)
         print(model_ft)
 
@@ -172,11 +178,10 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         print(model_ft)
 
     elif model_name == "mnasnet":
-        model_ft = models.mnasnet1_0(pretrained=use_pretrained)
+        model_ft = mnasnet1_0(pretrained=use_pretrained)
         #model_ft = MnasNet()
         set_parameter_requires_grad(model_ft, feature_extracting)
-        print(model_ft)
-        print("---")
+
         print(model_ft.classifier[0])
         print(model_ft.classifier[1])
 
@@ -186,6 +191,12 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         #model_ft.classifier[0] = nn.Dropout(p=0.2, inplace=False)
         model_ft.classifier[1] = nn.Linear(num_features, embedding_dim)
         print(model_ft)
+    elif model_name == "adl_googlenet":
+        model_ft = GoogLeNet()
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        print(model_ft)
+        num_features = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_features, embedding_dim)
 
 
 
