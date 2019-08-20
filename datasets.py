@@ -16,6 +16,7 @@ class BalancedBatchSampler(BatchSampler):
     """
 
     def __init__(self, dataset, n_classes, n_samples):
+        #import pdb; pdb.set_trace()
         loader = DataLoader(dataset)
         self.labels_list = []
         for _, label in loader:
@@ -34,7 +35,9 @@ class BalancedBatchSampler(BatchSampler):
         self.batch_size = self.n_samples * self.n_classes
 
     def __iter__(self):
+        #import pdb; pdb.set_trace()
         self.count = 0
+        print("number of classes: ", self.n_classes)
         while self.count + self.batch_size < len(self.dataset):
             classes = np.random.choice(self.labels_set, self.n_classes, replace=False)
             indices = []

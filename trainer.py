@@ -1,10 +1,32 @@
 import os
 
 import torch
+import torchvision
 import numpy as np
 from tensorboardX import SummaryWriter
 global writer
+from torchvision import transforms, datasets
+
+
 total_step = 0
+
+
+class UnNormalize(object):
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+        Returns:
+            Tensor: Normalized image.
+        """
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.mul_(s).add_(m)
+            # The normalize code -> t.sub_(m).div_(s)
+        return tensor
 
 def save(model, ckpt_num, dir_name):
     os.makedirs(dir_name, exist_ok=True)
@@ -27,7 +49,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
     Online triplet learning: batch loader, embedding model, online triplet loss
     """
     global writer
-    writer = SummaryWriter()
+    writer = SummaryWriter('runs')
 
     # Save pre-trained model
     save(model, 0, save_model_to)
@@ -36,7 +58,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
         scheduler.step()
 
     for epoch in range(start_epoch, nb_epoch):
-        scheduler.step()
+        #scheduler.step()
 
         # Train stage
         train_loss, metrics = train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_interval)
@@ -56,6 +78,7 @@ def fit(train_loader, model, loss_fn, optimizer, scheduler, nb_epoch,
         print(message)
         print(log_dict)
         #if (epoch + 1) % 5 == 0:
+        scheduler.step()
         save(model, epoch + 1, save_model_to)
 
 
@@ -101,6 +124,32 @@ def train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_inte
                 #print(np.mean(value))
                 #print(value)
                 writer.add_scalar('data/loss', np.mean(value), total_step)
+
+                #print(data[0].min())
+                #print(data[0].max())
+
+                image = data[0]
+                """
+                inv_normalize = transforms.Normalize(
+                    mean=[-0.485/0.229, -0.456/0.224, -0.406/0.255],
+                    std=[1/0.229, 1/0.224, 1/0.255]
+                )
+                imgs = inv_normalize(data[0])
+                """
+                """
+                unnorm = UnNormalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                imgs = unnorm(data[0])*255
+
+                print(imgs)
+                grid = torchvision.utils.make_grid(imgs)
+                writer.add_image('images', grid, 0)
+                """
+
+                image = (image - image.min()) / (image.max() - image.min())
+                grid = torchvision.utils.make_grid(image)
+                writer.add_image('images', grid, total_step)
+
+
                 total_step += 1
 
 

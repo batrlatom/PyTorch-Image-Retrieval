@@ -32,24 +32,34 @@ def copy_file_rename(src, dst):
 
 
 def main():
+
+    import shutil
+
+    #print(taget_folder_name)
+
+    shutil.rmtree(taget_folder_name+"/reference", ignore_errors=True)
+    shutil.rmtree(taget_folder_name+"/query", ignore_errors=True)
+    os.makedirs(taget_folder_name+"/query")
+    os.makedirs(taget_folder_name+"/reference")
+
     subs = get_immediate_subdirectories(path)
 
-    subs = random.sample(subs, 100)
+    subs = random.sample(subs, 10)
 
     for sub in subs:
         dir_name = sub
         sub = os.path.join(path, sub)
-        print(sub.split('_')[-1])
+        #print(sub.split('_')[-1])
 
         files = glob.glob( os.path.join(sub, '*.jpg'))
         files = random.sample(files, 3)
 
         for index, file in enumerate(files):
-            print(file)
+            #print(file)
             if random.random() < 0.8:
-                copy_file_rename(file, os.path.join(taget_folder_name, 'reference', sub.split('_')[-1] + '_' + str(index) + '.jpg'))
+                copy_file_rename(file, os.path.join(taget_folder_name, 'reference', sub.split('.')[-1] + '_' + str(index) + '.jpg'))
             else:
-                copy_file_rename(file, os.path.join(taget_folder_name,'query', sub.split('_')[-1] + '_' + str(index) + '.jpg'))
+                copy_file_rename(file, os.path.join(taget_folder_name,'query', sub.split('.')[-1] + '_' + str(index) + '.jpg'))
 
 
 

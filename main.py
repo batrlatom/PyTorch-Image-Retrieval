@@ -45,7 +45,7 @@ def get_arguments():
     args.add_argument('--epochs', type=int, default=20)
     args.add_argument('--start-epoch', type=int, default=0)
     args.add_argument('--model', type=str,
-                      choices=['densenet161', 'resnet101',  'inceptionv3', 'seresnext', 'googlenet','mobilenet2', 'mnasnet'],
+                      choices=['densenet161', 'resnet101',  'inceptionv3', 'seresnext', 'googlenet','mobilenet2', 'mnasnet', 'adl_googlenet'],
                       default='densenet161')
     args.add_argument('--input-size', type=int, default=224, help='size of input image')
     args.add_argument('--num-classes', type=int, default=64, help='number of classes for batch sampler')
@@ -185,7 +185,7 @@ if __name__ == '__main__':
         from sklearn.metrics import recall_score, precision_score
         import numpy as np
 
-    
+
         positives = []
         k = 1
         for item in result_dict:

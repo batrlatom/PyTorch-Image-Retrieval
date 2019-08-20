@@ -9,23 +9,27 @@ from torch.utils.data import Dataset
 from torchvision import transforms, datasets
 from PIL import Image
 
-
+"""
+transforms.RandomOrder([
+    transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], .5),
+    transforms.Compose([
+        transforms.RandomApply([transforms.ColorJitter(saturation=0.5)], .5),
+        transforms.RandomApply([transforms.ColorJitter(hue=0.1)], .5),
+    ])
+]),
+transforms.RandomApply([transforms.ColorJitter(brightness=0.125)], .5),
+transforms.RandomApply([transforms.RandomRotation(15)], .5),
+transforms.RandomResizedCrop(img_size),
+transforms.RandomHorizontalFlip(),
+"""
 def train_data_loader(data_path, img_size, use_augment=False):
     if use_augment:
-        data_transforms = transforms.Compose([            
-            transforms.RandomOrder([
-                transforms.RandomApply([transforms.ColorJitter(contrast=0.5)], .5),
-                transforms.Compose([
-                    transforms.RandomApply([transforms.ColorJitter(saturation=0.5)], .5),
-                    transforms.RandomApply([transforms.ColorJitter(hue=0.1)], .5),
-                ])
-            ]),
-            transforms.RandomApply([transforms.ColorJitter(brightness=0.125)], .5),
-            transforms.RandomApply([transforms.RandomRotation(15)], .5),
-            transforms.RandomResizedCrop(img_size),
-            transforms.RandomHorizontalFlip(),
+        data_transforms = transforms.Compose([
 
-            #AutoAugment(), Cutout(),
+            transforms.RandomResizedCrop(img_size),
+
+
+            AutoAugment(), Cutout(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
