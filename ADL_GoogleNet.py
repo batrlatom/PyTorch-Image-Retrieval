@@ -3,7 +3,7 @@ from collections import namedtuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.utils import load_state_dict_from_url
+from .utils import load_state_dict_from_url
 
 __all__ = ['GoogLeNet', 'googlenet']
 
@@ -49,6 +49,50 @@ def googlenet(pretrained=False, progress=True, **kwargs):
 
     return GoogLeNet(**kwargs)
 
+class ADL(nn.Module):
+    def __init__(self, drop_rate=0.75, drop_thr=0.8):
+        super(ADL, self).__init__()
+        assert 0 <= drop_rate <= 1 and 0 <= drop_thr <= 1
+        self.drop_rate = drop_rate
+        self.drop_thr = drop_thr
+        self.attention = None
+        self.drop_mask = None
+
+    def extra_repr(self):
+        return 'drop_rate={}, drop_thr={}'.format(
+            self.drop_rate, self.drop_thr
+        )
+
+    def forward(self, x):
+        if self.training:
+            b = x.size(0)
+
+            # Generate self-attention map
+            attention = torch.mean(x, dim=1, keepdim=True)
+            self.attention = attention
+            # Generate importance map
+            importance_map = torch.sigmoid(attention)
+
+            # Generate drop mask
+            max_val, _ = torch.max(attention.view(b, -1), dim=1, keepdim=True)
+            thr_val = max_val * self.drop_thr
+            thr_val = thr_val.view(b, 1, 1, 1).expand_as(attention)
+            drop_mask = (attention < thr_val).float()
+            self.drop_mask = drop_mask
+            # Random selection
+            random_tensor = torch.rand([], dtype=torch.float32) + self.drop_rate
+            binary_tensor = random_tensor.floor()
+            selected_map = (1. - binary_tensor) * importance_map + binary_tensor * drop_mask
+
+            # Spatial multiplication to input feature map
+            output = x.mul(selected_map)
+
+        else:
+            output = x
+        return output
+
+    def get_maps(self):
+        return self.attention, self.drop_mask
 
 
 class GoogLeNet(nn.Module):

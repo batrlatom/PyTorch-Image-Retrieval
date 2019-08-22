@@ -144,7 +144,7 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         print(num_features)
         #print(embedding_dim)
         model_ft.classifier = nn.Linear(num_features, embedding_dim)
-        print(model_ft)
+        #print(model_ft)
 
     elif model_name == "resnet101":
         model_ft = models.resnet101(pretrained=use_pretrained)
@@ -165,7 +165,7 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
     elif model_name == "googlenet":
         model_ft = models.googlenet(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
-        print(model_ft)
+        #print(model_ft)
         num_features = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_features, embedding_dim)
 

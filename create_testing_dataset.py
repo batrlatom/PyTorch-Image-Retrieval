@@ -7,6 +7,8 @@ import shutil
 import glob
 path = sys.argv[1]
 taget_folder_name = sys.argv[2]
+number_of_test_examples = sys.argv[3]
+
 import random
 import os
 from shutil import copyfile
@@ -44,7 +46,7 @@ def main():
 
     subs = get_immediate_subdirectories(path)
 
-    subs = random.sample(subs, 10)
+    subs = random.sample(subs, int(number_of_test_examples))
 
     for sub in subs:
         dir_name = sub
@@ -57,9 +59,9 @@ def main():
         for index, file in enumerate(files):
             #print(file)
             if random.random() < 0.8:
-                copy_file_rename(file, os.path.join(taget_folder_name, 'reference', sub.split('.')[-1] + '_' + str(index) + '.jpg'))
+                copy_file_rename(file, os.path.join(taget_folder_name, 'reference', sub.split('_')[-1] + '_' + str(index) + '.jpg'))
             else:
-                copy_file_rename(file, os.path.join(taget_folder_name,'query', sub.split('.')[-1] + '_' + str(index) + '.jpg'))
+                copy_file_rename(file, os.path.join(taget_folder_name,'query', sub.split('_')[-1] + '_' + str(index) + '.jpg'))
 
 
 

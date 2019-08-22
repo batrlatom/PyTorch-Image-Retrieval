@@ -11,22 +11,29 @@ from torchvision import transforms, datasets
 total_step = 0
 
 
-class UnNormalize(object):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
+# helper function
+def select_n_random(data, labels, n=100):
+    '''
+    Selects n random datapoints and their corresponding labels from a dataset
+    '''
+    assert len(data) == len(labels)
 
-    def __call__(self, tensor):
-        """
-        Args:
-            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
-        Returns:
-            Tensor: Normalized image.
-        """
-        for t, m, s in zip(tensor, self.mean, self.std):
-            t.mul_(s).add_(m)
-            # The normalize code -> t.sub_(m).div_(s)
-        return tensor
+    perm = torch.randperm(len(data))
+    return data[perm][:n], labels[perm][:n]
+
+    # select random images and their target indices
+    #images, labels = select_n_random(trainset.data, trainset.targets)
+
+    # get the class labels for each image
+    class_labels = [classes[lab] for lab in labels]
+
+    # log embeddings
+    features = images.view(-1, 28 * 28)
+    writer.add_embedding(features,
+                        metadata=class_labels,
+                        label_img=images.unsqueeze(1))
+    #writer.close()
+
 
 def save(model, ckpt_num, dir_name):
     os.makedirs(dir_name, exist_ok=True)
@@ -119,35 +126,13 @@ def train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_inte
                 batch_idx * len(data[0]), len(train_loader.dataset), 100. * batch_idx / len(train_loader))
             for name, value in losses.items():
                 message += '\t{}: {:.6f}'.format(name, np.mean(value))
-                #print("------")
-                #print(total_step)
-                #print(np.mean(value))
-                #print(value)
                 writer.add_scalar('data/loss', np.mean(value), total_step)
-
-                #print(data[0].min())
-                #print(data[0].max())
-
                 image = data[0]
-                """
-                inv_normalize = transforms.Normalize(
-                    mean=[-0.485/0.229, -0.456/0.224, -0.406/0.255],
-                    std=[1/0.229, 1/0.224, 1/0.255]
-                )
-                imgs = inv_normalize(data[0])
-                """
-                """
-                unnorm = UnNormalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-                imgs = unnorm(data[0])*255
-
-                print(imgs)
-                grid = torchvision.utils.make_grid(imgs)
-                writer.add_image('images', grid, 0)
-                """
-
                 image = (image - image.min()) / (image.max() - image.min())
                 grid = torchvision.utils.make_grid(image)
                 writer.add_image('images', grid, total_step)
+
+                writer.add_embedding(output_embedding, label_img=image)
 
 
                 total_step += 1

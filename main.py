@@ -189,10 +189,13 @@ if __name__ == '__main__':
         positives = []
         k = 1
         for item in result_dict:
-            #print("---")
+            print("---")
             index, query_item = item
             query = query_item[0]
-            for result in query_item[1][:k]:
+            print("results: ", query_item[1][:5])
+            print("---")
+            for result_index, result in enumerate(query_item[1][:k]):
+                print("result at "+str(result_index)+" :", result)
                 if query.split('_')[0] == result.split('_')[0]:
                     positives.append(1)
                 else:

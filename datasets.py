@@ -17,7 +17,7 @@ class BalancedBatchSampler(BatchSampler):
 
     def __init__(self, dataset, n_classes, n_samples):
         #import pdb; pdb.set_trace()
-        loader = DataLoader(dataset)
+        loader = DataLoader(dataset, num_workers=4)
         self.labels_list = []
         for _, label in loader:
             self.labels_list.append(label)
