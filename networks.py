@@ -7,10 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
 
-from senet import se_resnext101_32x4d
+from senet import se_resnext101_32x4d, se_resnext50_32x4d
 from MobileNetV2 import MobileNetV2
 from MnasNet import mnasnet1_0
 from ADL_GoogleNet import GoogLeNet
+from adl_resnet import resnet50 as adl_resnet50
 
 class BaseNetwork(nn.Module):
     """ Load Pretrained Module """
@@ -87,11 +88,23 @@ class EmbeddingNetwork(BaseNetwork):
         if self.attention_flag:
             if self.model_name == 'densenet161':
                 self.attention = SelfAttention(2208, 'relu')
+            if self.model_name == 'densenet169':
+                self.attention = SelfAttention(2208, 'relu')
+            if self.model_name == 'densenet121':
+                self.attention = SelfAttention(1024, 'relu')
+            if self.model_name == 'densenet201':
+                self.attention = SelfAttention(1920, 'relu')
             elif self.model_name == 'resnet101':
+                self.attention = SelfAttention(2048, 'relu')
+            elif self.model_name == 'resnet34':
+                self.attention = SelfAttention(512, 'relu')
+            elif self.model_name == 'adl_resnet50':
                 self.attention = SelfAttention(2048, 'relu')
             elif self.model_name == 'inceptionv3':
                 self.attention = SelfAttention(2048, 'relu')
             elif self.model_name == 'seresnext':
+                self.attention = SelfAttention(2048, 'relu')
+            elif self.model_name == 'seresnext50':
                 self.attention = SelfAttention(2048, 'relu')
             elif self.model_name == 'googlenet':
                 self.attention = SelfAttention(1024, 'relu')
@@ -136,7 +149,7 @@ def set_parameter_requires_grad(model, feature_extracting):
 
 def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrained=True):
     if model_name == "densenet161":
-        model_ft = models.densenet161(pretrained=use_pretrained)
+        model_ft = models.densenet161(pretrained=use_pretrained, memory_efficient=True)
         set_parameter_requires_grad(model_ft, feature_extracting)
 
         #print(model_ft)
@@ -145,13 +158,56 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         #print(embedding_dim)
         model_ft.classifier = nn.Linear(num_features, embedding_dim)
         #print(model_ft)
+        if model_name == "densenet169":
+            model_ft = models.densenet161(pretrained=use_pretrained, memory_efficient=True)
+            set_parameter_requires_grad(model_ft, feature_extracting)
 
+            #print(model_ft)
+            num_features = model_ft.classifier.in_features
+            print(num_features)
+            #print(embedding_dim)
+            model_ft.classifier = nn.Linear(num_features, embedding_dim)
+            #print(model_ft)
+    if model_name == "densenet121":
+        model_ft = models.densenet121(pretrained=use_pretrained, memory_efficient=True)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+
+        #print(model_ft)
+        num_features = model_ft.classifier.in_features
+        print(num_features)
+        #print(embedding_dim)
+        model_ft.classifier = nn.Linear(num_features, embedding_dim)
+        #print(model_ft)
+    if model_name == "densenet201":
+        model_ft = models.densenet201(pretrained=use_pretrained, memory_efficient=True)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+
+        #print(model_ft)
+        num_features = model_ft.classifier.in_features
+        print(num_features)
+        #print(embedding_dim)
+        model_ft.classifier = nn.Linear(num_features, embedding_dim)
+        #print(model_ft)
     elif model_name == "resnet101":
         model_ft = models.resnet101(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
         num_features = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_features, embedding_dim)
         print(model_ft)
+    elif model_name == "resnet34":
+        model_ft = models.resnet34(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        num_features = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
+    elif model_name == "adl_resnet50":
+        model_ft = adl_resnet50(pretrained=use_pretrained)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        num_features = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_features, embedding_dim)
+        print(model_ft)
+
+
     elif model_name == "inceptionv3":
         model_ft = models.inception_v3(pretrained=use_pretrained)
         set_parameter_requires_grad(model_ft, feature_extracting)
@@ -159,6 +215,11 @@ def initialize_model(model_name, embedding_dim, feature_extracting, use_pretrain
         model_ft.fc = nn.Linear(num_features, embedding_dim)
     elif model_name == "seresnext":
         model_ft = se_resnext101_32x4d(num_classes=1000)
+        set_parameter_requires_grad(model_ft, feature_extracting)
+        num_features = model_ft.last_linear.in_features
+        model_ft.last_linear = nn.Linear(num_features, embedding_dim)
+    elif model_name == "seresnext50":
+        model_ft = se_resnext50_32x4d(num_classes=1000)
         set_parameter_requires_grad(model_ft, feature_extracting)
         num_features = model_ft.last_linear.in_features
         model_ft.last_linear = nn.Linear(num_features, embedding_dim)

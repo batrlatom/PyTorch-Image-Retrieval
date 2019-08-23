@@ -15,7 +15,7 @@ from data_loader import train_data_loader, test_data_loader
 from networks import EmbeddingNetwork
 
 # Load batch sampler and train loss
-from datasets import BalancedBatchSampler
+from datasets import BalancedBatchSampler #, NegativeClassMiningBatchSampler
 from losses import BlendedLoss, MAIN_LOSS_CHOICES
 
 from trainer import fit
@@ -45,7 +45,7 @@ def get_arguments():
     args.add_argument('--epochs', type=int, default=20)
     args.add_argument('--start-epoch', type=int, default=0)
     args.add_argument('--model', type=str,
-                      choices=['densenet161', 'resnet101',  'inceptionv3', 'seresnext', 'googlenet','mobilenet2', 'mnasnet', 'adl_googlenet'],
+                      choices=['densenet161', 'densenet169' ,'densenet121', 'densenet201', 'resnet101', 'resnet34',  'adl_resnet50','inceptionv3', 'seresnext', 'seresnext50', 'googlenet','mobilenet2', 'mnasnet', 'adl_googlenet'],
                       default='densenet161')
     args.add_argument('--input-size', type=int, default=224, help='size of input image')
     args.add_argument('--num-classes', type=int, default=64, help='number of classes for batch sampler')
@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
     if config.mode == 'train':
 
-        torch.autograd.set_detect_anomaly(True)
+        #torch.autograd.set_detect_anomaly(True)
 
         """ Load data """
         print('dataset path', dataset_path)
@@ -132,6 +132,7 @@ if __name__ == '__main__':
 
         # Balanced batch sampler and online train loader
         train_batch_sampler = BalancedBatchSampler(img_dataset, n_classes=num_classes, n_samples=num_samples)
+        #train_batch_sampler = NegativeClassMiningBatchSampler(img_dataset, n_classes=num_classes, n_samples=num_samples)
         online_train_loader = torch.utils.data.DataLoader(img_dataset,
                                                           batch_sampler=train_batch_sampler,
                                                           num_workers=4,
@@ -192,10 +193,11 @@ if __name__ == '__main__':
             print("---")
             index, query_item = item
             query = query_item[0]
+            print("query: ", query)
             print("results: ", query_item[1][:5])
             print("---")
             for result_index, result in enumerate(query_item[1][:k]):
-                print("result at "+str(result_index)+" :", result)
+                #print("result at "+str(result_index)+" :", result)
                 if query.split('_')[0] == result.split('_')[0]:
                     positives.append(1)
                 else:

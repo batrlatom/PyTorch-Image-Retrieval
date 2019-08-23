@@ -4,7 +4,7 @@ Original source: https://github.com/adambielski/siamese-triplet
 
 import numpy as np
 import torch
-
+import os
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import BatchSampler
 
@@ -17,7 +17,7 @@ class BalancedBatchSampler(BatchSampler):
 
     def __init__(self, dataset, n_classes, n_samples):
         #import pdb; pdb.set_trace()
-        loader = DataLoader(dataset, num_workers=4)
+        loader = DataLoader(dataset)
         self.labels_list = []
         for _, label in loader:
             self.labels_list.append(label)

@@ -127,12 +127,19 @@ def train_epoch(epoch, train_loader, model, loss_fn, optimizer, device, log_inte
             for name, value in losses.items():
                 message += '\t{}: {:.6f}'.format(name, np.mean(value))
                 writer.add_scalar('data/loss', np.mean(value), total_step)
+                #print("---")
+                #print(data)
+                #print("---")
+                #print(data[1])
+                #print("---")
+                """
                 image = data[0]
                 image = (image - image.min()) / (image.max() - image.min())
                 grid = torchvision.utils.make_grid(image)
-                writer.add_image('images', grid, total_step)
 
-                writer.add_embedding(output_embedding, label_img=image)
+                writer.add_image('images', grid, total_step)
+                """
+                #writer.add_embedding(output_embedding, label_img=image, global_step = total_step)
 
 
                 total_step += 1
